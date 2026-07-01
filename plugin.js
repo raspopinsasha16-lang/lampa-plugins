@@ -1,15 +1,8 @@
 (function () {
     'use strict';
 
-    // Создаем глобальный объект плагина, который Lampa ищет при загрузке файла
-    window.huyamba_plugin = {
-        name: 'Huyamba Name',
-        version: '1.0.0',
-        description: 'Просмотр сайта Huyamba Name внутри Lampa'
-    };
-
     function startPlugin() {
-        // Создаем пункт меню
+        // 1. Создаем и добавляем пункт меню
         var menuitem = {
             id: 'huyamba_site',
             title: 'Huyamba Name',
@@ -17,12 +10,11 @@
             name: 'Huyamba Name'
         };
 
-        // Добавляем элемент в меню Lampa
         if (window.Lampa && window.Lampa.Menu) {
             window.Lampa.Menu.add(menuitem);
         }
 
-        // Регистрируем компонент отображения сайта
+        // 2. Создаем компонент отображения сайта в iframe
         if (window.Lampa && window.Lampa.Component) {
             window.Lampa.Component.add('huyamba_component', function (object) {
                 var comp = this;
@@ -44,7 +36,7 @@
             });
         }
 
-        // Подключаем клик по меню
+        // 3. Вешаем событие клика на созданный пункт меню
         if (window.Lampa && window.Lampa.Listener) {
             window.Lampa.Listener.follow('menu', function (e) {
                 if (e.type == 'click' && e.item.id == 'huyamba_site') {
@@ -59,7 +51,7 @@
         }
     }
 
-    // Запуск плагина
+    // Запуск плагина при готовности Lampa
     if (window.appready) {
         startPlugin();
     } else if (window.Lampa && window.Lampa.Listener) {
@@ -68,13 +60,5 @@
                 startPlugin();
             }
         });
-    } else {
-        // Резервный таймер, если события Lampa не сработали вовремя
-        var interval = setInterval(function () {
-            if (window.appready || (window.Lampa && window.Lampa.Menu)) {
-                clearInterval(interval);
-                startPlugin();
-            }
-        }, 200);
     }
 })();
