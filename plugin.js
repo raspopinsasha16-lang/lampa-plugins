@@ -1,8 +1,20 @@
+/**
+ * {
+ *   "name": "Huyamba",
+ *   "version": "1.0.2",
+ *   "description": "Huyamba Site Integration",
+ *   "plugin": "huyamba_plugin"
+ * }
+ */
+
 (function () {
     'use strict';
 
-    function startPlugin() {
-        // 1. Создаем и добавляем пункт меню
+    function initHuyamba() {
+        // Проверяем, что меню Lampa готово к работе
+        if (!window.Lampa || !window.Lampa.Menu) return;
+
+        // 1. Создаем пункт меню
         var menuitem = {
             id: 'huyamba_site',
             title: 'Huyamba Name',
@@ -10,55 +22,53 @@
             name: 'Huyamba Name'
         };
 
-        if (window.Lampa && window.Lampa.Menu) {
-            window.Lampa.Menu.add(menuitem);
-        }
+        // Добавляем пункт в левое меню
+        window.Lampa.Menu.add(menuitem);
 
-        // 2. Создаем компонент отображения сайта в iframe
-        if (window.Lampa && window.Lampa.Component) {
-            window.Lampa.Component.add('huyamba_component', function (object) {
-                var comp = this;
-                var html = $('<div></div>');
-                var url = 'https://ru.huyamba.name';
+        // 2. Создаем компонент для открытия iframe
+        window.Lampa.Component.add('huyamba_component', function (object) {
+            var comp = this;
+            var html = $('<div></div>');
+            var url = 'https://ru.huyamba.name';
 
-                this.create = function () {
-                    var iframe = $('<iframe src="' + url + '" style="width: 100%; height: 100vh; border: none; background: #141414;"></iframe>');
-                    html.append(iframe);
-                };
+            this.create = function () {
+                var iframe = $('<iframe src="' + url + '" style="width: 100%; height: 100vh; border: none; background: #141414;"></iframe>');
+                html.append(iframe);
+            };
 
-                this.render = function () {
-                    return html;
-                };
+            this.render = function () {
+                return html;
+            };
 
-                this.destroy = function () {
-                    html.remove();
-                };
-            });
-        }
+            this.destroy = function () {
+                html.remove();
+            };
+        });
 
-        // 3. Вешаем событие клика на созданный пункт меню
-        if (window.Lampa && window.Lampa.Listener) {
-            window.Lampa.Listener.follow('menu', function (e) {
-                if (e.type == 'click' && e.item.id == 'huyamba_site') {
-                    window.Lampa.Activity.push({
-                        plugin: 'huyamba_plugin',
-                        title: 'Huyamba Name',
-                        component: 'huyamba_component',
-                        page: 1
-                    });
-                }
-            });
-        }
-    }
-
-    // Запуск плагина при готовности Lampa
-    if (window.appready) {
-        startPlugin();
-    } else if (window.Lampa && window.Lampa.Listener) {
-        window.Lampa.Listener.follow('app', function (e) {
-            if (e.type == 'ready') {
-                startPlugin();
+        // 3. Вешаем событие клика
+        window.Lampa.Listener.follow('menu', function (e) {
+            if (e.type == 'click' && e.item.id == 'huyamba_site') {
+                window.Lampa.Activity.push({
+                    plugin: 'huyamba_plugin',
+                    title: 'Huyamba Name',
+                    component: 'huyamba_component',
+                    page: 1
+                });
             }
         });
     }
+
+    // Запуск через безопасный таймер, чтобы дать интерфейсу Lampa полностью собраться
+    setTimeout(function() {
+        if (window.appready) {
+            initHuyamba();
+        } else {
+            if (window.Lampa && window.Lampa.Listener) {
+                window.Lampa.Listener.follow('app', function (e) {
+                    if (e.type == 'ready') initHuyamba();
+                });
+            }
+        }
+    }, 500);
+
 })();
