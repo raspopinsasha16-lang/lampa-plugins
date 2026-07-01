@@ -1,8 +1,8 @@
 /**
  * {
  * "name": "Хуямба",
- * "version": "1.0.8",
- * "description": "Huyamba Site",
+ * "version": "1.1.0",
+ * "description": "Huyamba Web Site",
  * "plugin": "huyamba_plugin"
  * }
  */
@@ -20,41 +20,40 @@
             name: 'Huyamba Name'
         };
 
-        // Добавляем пункт в левое меню Lampa
         window.Lampa.Menu.add(menuitem);
 
-        // Создаем чистый компонент без использования jQuery ($)
         window.Lampa.Component.add('huyamba_component', function (object) {
-            var box;
-            
-            this.create = function () {
-                box = document.createElement('div');
-                box.style.width = '100%';
-                box.style.height = '100vh';
-                box.style.background = '#141414';
+            var comp = this;
+            var html;
 
+            this.create = function () {
+                // Используем абсолютно безопасный способ создания разметки, совместимый со всеми версиями
+                html = window.Lampa.Template.get('activity_unset', {});
+                
                 var iframe = document.createElement('iframe');
                 iframe.src = 'https://ru.huyamba.name';
                 iframe.style.width = '100%';
-                iframe.style.height = '100%';
+                iframe.style.height = '100vh';
                 iframe.style.border = 'none';
+                iframe.style.background = '#141414';
 
-                box.appendChild(iframe);
+                // Напрямую добавляем фрейм внутрь контейнера Lampa
+                if (html && html.get) {
+                    html.get(0).appendChild(iframe);
+                } else if (html && html.append) {
+                    html.append(iframe);
+                }
             };
 
             this.render = function () {
-                // Возвращаем чистый DOM-элемент напрямую
-                return box;
+                return html;
             };
 
             this.destroy = function () {
-                if (box && box.parentNode) {
-                    box.parentNode.removeChild(box);
-                }
+                if (html && html.remove) html.remove();
             };
         });
 
-        // Слушаем нажатие на пункт меню
         window.Lampa.Listener.follow('menu', function (e) {
             if (e.type === 'click' && e.item.id === 'huyamba_site') {
                 window.Lampa.Activity.push({
@@ -66,7 +65,6 @@
         });
     }
 
-    // Безопасный запуск после загрузки интерфейса
     if (window.Lampa && window.Lampa.Menu) {
         startHuyamba();
     } else {
