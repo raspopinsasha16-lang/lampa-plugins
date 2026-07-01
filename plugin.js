@@ -2,6 +2,9 @@
     'use strict';
 
     function startHuyamba() {
+        // Проверяем, что ядро Lampa готово
+        if (!window.Lampa || !window.Lampa.Menu) return;
+
         var menuitem = {
             id: 'huyamba_site',
             title: 'Huyamba Name',
@@ -9,24 +12,45 @@
             name: 'Huyamba Name'
         };
 
-        // Добавляем в левое меню
-        Lampa.Menu.add(menuitem);
+        // Добавляем пункт в левое меню
+        window.Lampa.Menu.add(menuitem);
 
-        // Создаем окно с сайтом
-        Lampa.Component.add('huyamba_component', function (object) {
-            var html = $('<div></div>');
+        // Создаем окно с сайтом БЕЗ использования знака "$"
+        window.Lampa.Component.add('huyamba_component', function (object) {
+            var box;
+            
             this.create = function () {
-                var iframe = $('<iframe src="https://ru.huyamba.name" style="width: 100%; height: 100vh; border: none; background: #141414;"></iframe>');
-                html.append(iframe);
+                // Создаем элементы через стандартные методы браузера
+                box = document.createElement('div');
+                box.style.width = '100%';
+                box.style.height = '100vh';
+                box.style.background = '#141414';
+
+                var iframe = document.createElement('iframe');
+                iframe.src = 'https://ru.huyamba.name';
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+                iframe.style.border = 'none';
+
+                box.appendChild(iframe);
             };
-            this.render = function () { return html; };
-            this.destroy = function () { html.remove(); };
+
+            this.render = function () {
+                // Возвращаем элемент в формате, который ждет Lampa
+                return window.Lampa.Reguest ? box : window.$(box);
+            };
+
+            this.destroy = function () {
+                if (box && box.parentNode) {
+                    box.parentNode.removeChild(box);
+                }
+            };
         });
 
-        // Отслеживаем клик
-        Lampa.Listener.follow('menu', function (e) {
-            if (e.type == 'click' && e.item.id == 'huyamba_site') {
-                Lampa.Activity.push({
+        // Отслеживаем клик по нашему пункту
+        window.Lampa.Listener.follow('menu', function (e) {
+            if (e.type === 'click' && e.item.id === 'huyamba_site') {
+                window.Lampa.Activity.push({
                     title: 'Huyamba Name',
                     component: 'huyamba_component',
                     page: 1
@@ -35,6 +59,11 @@
         });
     }
 
-    // Запуск без лишних проверок
-    startHuyamba();
+    // Запускаем проверку через безопасный таймер
+    var interval = setInterval(function () {
+        if (window.Lampa && window.Lampa.Menu) {
+            clearInterval(interval);
+            startHuyamba();
+        }
+    }, 200);
 })();
