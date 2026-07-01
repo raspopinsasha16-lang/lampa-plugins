@@ -1,17 +1,15 @@
 (function () {
     'use strict';
 
-    function startPlugin() {
-        // Ждем, пока Lampa полностью загрузится
-        Lampa.Listener.follow('app', function (e) {
-            if (e.type == 'ready') {
-                createMenuComponent();
-            }
-        });
-    }
+    // Создаем глобальный объект плагина, который Lampa ищет при загрузке файла
+    window.huyamba_plugin = {
+        name: 'Huyamba Name',
+        version: '1.0.0',
+        description: 'Просмотр сайта Huyamba Name внутри Lampa'
+    };
 
-    function createMenuComponent() {
-        // 1. Добавляем пункт в левое меню Lampa
+    function startPlugin() {
+        // Создаем пункт меню
         var menuitem = {
             id: 'huyamba_site',
             title: 'Huyamba Name',
@@ -19,52 +17,64 @@
             name: 'Huyamba Name'
         };
 
-        // Встраиваем в список меню
-        Lampa.Menu.add(menuitem);
+        // Добавляем элемент в меню Lampa
+        if (window.Lampa && window.Lampa.Menu) {
+            window.Lampa.Menu.add(menuitem);
+        }
 
-        // 2. Создаем компонент, который будет открываться при клике
-        Lampa.Component.add('huyamba_component', function (object) {
-            var comp = this;
-            var html = $('<div></div>');
-            
-            // Ссылка на нужный сайт
-            var url = 'https://ru.huyamba.name';
+        // Регистрируем компонент отображения сайта
+        if (window.Lampa && window.Lampa.Component) {
+            window.Lampa.Component.add('huyamba_component', function (object) {
+                var comp = this;
+                var html = $('<div></div>');
+                var url = 'https://ru.huyamba.name';
 
-            this.create = function () {
-                // Создаем iframe на весь экран внутри интерфейса Lampa
-                var iframe = $('<iframe src="' + url + '" style="width: 100%; height: 100vh; border: none; background: #141414;"></iframe>');
-                html.append(iframe);
-            };
+                this.create = function () {
+                    var iframe = $('<iframe src="' + url + '" style="width: 100%; height: 100vh; border: none; background: #141414;"></iframe>');
+                    html.append(iframe);
+                };
 
-            this.render = function () {
-                return html;
-            };
+                this.render = function () {
+                    return html;
+                };
 
-            this.destroy = function () {
-                html.remove();
-            };
-        });
+                this.destroy = function () {
+                    html.remove();
+                };
+            });
+        }
 
-        // 3. Вешаем событие клика на наш пункт меню
-        Lampa.Listener.follow('menu', function (e) {
-            if (e.type == 'click' && e.item.id == 'huyamba_site') {
-                // Открываем созданный выше компонент
-                Lampa.Activity.push({
-                    plugin: 'huyamba_plugin',
-                    title: 'Huyamba Name',
-                    component: 'huyamba_component',
-                    page: 1
-                });
+        // Подключаем клик по меню
+        if (window.Lampa && window.Lampa.Listener) {
+            window.Lampa.Listener.follow('menu', function (e) {
+                if (e.type == 'click' && e.item.id == 'huyamba_site') {
+                    window.Lampa.Activity.push({
+                        plugin: 'huyamba_plugin',
+                        title: 'Huyamba Name',
+                        component: 'huyamba_component',
+                        page: 1
+                    });
+                }
+            });
+        }
+    }
+
+    // Запуск плагина
+    if (window.appready) {
+        startPlugin();
+    } else if (window.Lampa && window.Lampa.Listener) {
+        window.Lampa.Listener.follow('app', function (e) {
+            if (e.type == 'ready') {
+                startPlugin();
             }
         });
+    } else {
+        // Резервный таймер, если события Lampa не сработали вовремя
+        var interval = setInterval(function () {
+            if (window.appready || (window.Lampa && window.Lampa.Menu)) {
+                clearInterval(interval);
+                startPlugin();
+            }
+        }, 200);
     }
-
-    // Запуск плагина (проверка на существование ядра Lampa)
-    if (window.appready) startPlugin();
-    else {
-        Lampa.Listener.follow('app', function (e) {
-            if (e.type == 'ready') startPlugin();
-        });
-    }
-
 })();
