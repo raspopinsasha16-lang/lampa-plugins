@@ -1,8 +1,8 @@
 /**
  * {
- * "name": "Хуямба Сайт",
- * "version": "1.6.0",
- * "description": "Просмотр сайта Huyamba",
+ * "name": "Тест Хуямба",
+ * "version": "2.0.0",
+ * "description": "Проверка плагина",
  * "plugin": "huyamba_plugin"
  * }
  */
@@ -10,62 +10,23 @@
 (function () {
     'use strict';
 
-    function startHuyamba() {
-        if (!window.Lampa || !window.Lampa.Menu) return;
-
-        var menuitem = {
-            id: 'huyamba_site',
-            title: 'Huyamba Name',
-            icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>',
-            name: 'Huyamba Name'
-        };
-
-        window.Lampa.Menu.add(menuitem);
-
-        window.Lampa.Component.add('huyamba_component', function (object) {
-            var comp = this;
-            var html;
-
-            this.create = function () {
-                html = window.Lampa.Template.get('activity_unset', {});
-                var iframe = document.createElement('iframe');
-                iframe.src = 'https://ru.huyamba.name';
-                iframe.style.width = '100%';
-                iframe.style.height = '100vh';
-                iframe.style.border = 'none';
-                iframe.style.background = '#141414';
-
-                if (html.append) html.append(iframe);
-                else if (html.get) html.get(0).appendChild(iframe);
-            };
-
-            this.render = function () {
-                return html;
-            };
-
-            this.destroy = function () {
-                if (html && html.remove) html.remove();
-            };
-        });
-
-        window.Lampa.Listener.follow('menu', function (e) {
-            if (e.type === 'click' && e.item.id === 'huyamba_site') {
-                window.Lampa.Activity.push({
-                    title: 'Huyamba Name',
-                    component: 'huyamba_component',
-                    page: 1
-                });
-            }
-        });
+    function init() {
+        // Просто выводим сообщение на экран в стиле Лампы
+        if (window.Lampa && window.Lampa.Noty) {
+            window.Lampa.Noty.show('Плагин успешно загружен и работает!');
+        } else {
+            alert('Плагин работает!');
+        }
     }
 
+    // Безопасный запуск
     if (window.appready) {
-        startHuyamba();
+        init();
     } else if (window.Lampa && window.Lampa.Listener) {
         window.Lampa.Listener.follow('app', function (e) {
-            if (e.type === 'ready') startHuyamba();
+            if (e.type === 'ready') init();
         });
     } else {
-        setTimeout(startHuyamba, 1000);
+        setTimeout(init, 1000);
     }
 })();
