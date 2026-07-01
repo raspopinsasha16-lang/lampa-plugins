@@ -1,18 +1,24 @@
 /**
  * {
- *   "name": "Huyamba",
- *   "version": "1.0.2",
- *   "description": "Huyamba Site Integration",
- *   "plugin": "huyamba_plugin"
+ * "name": "Хуямба",
+ * "version": "1.0.5",
+ * "description": "Huyamba Site",
+ * "plugin": "huyamba_plugin"
  * }
  */
 
 (function () {
     'use strict';
 
-    function initHuyamba() {
-        // Проверяем, что меню Lampa готово к работе
-        if (!window.Lampa || !window.Lampa.Menu) return;
+    // Флаг, чтобы не добавлять меню несколько раз
+    var menuAdded = false;
+
+    function tryInject() {
+        // Если уже добавили, или Lampa еще не загрузила свои модули — выходим и ждем следующего тика
+        if (menuAdded) return;
+        if (!window.Lampa || !window.Lampa.Menu || !window.Lampa.Component || !window.Lampa.Listener) return;
+
+        menuAdded = true;
 
         // 1. Создаем пункт меню
         var menuitem = {
@@ -22,10 +28,10 @@
             name: 'Huyamba Name'
         };
 
-        // Добавляем пункт в левое меню
+        // Добавляем в левую панель
         window.Lampa.Menu.add(menuitem);
 
-        // 2. Создаем компонент для открытия iframe
+        // 2. Регистрируем внутренний экран с фреймом сайта
         window.Lampa.Component.add('huyamba_component', function (object) {
             var comp = this;
             var html = $('<div></div>');
@@ -45,7 +51,7 @@
             };
         });
 
-        // 3. Вешаем событие клика
+        // 3. Отслеживаем нажатие
         window.Lampa.Listener.follow('menu', function (e) {
             if (e.type == 'click' && e.item.id == 'huyamba_site') {
                 window.Lampa.Activity.push({
@@ -58,16 +64,12 @@
         });
     }
 
-    // Запуск через безопасный таймер, чтобы дать интерфейсу Lampa полностью собраться
-    setTimeout(function() {
-        if (window.appready) {
-            initHuyamba();
+    // Запускаем постоянную проверку каждые 500 миллисекунд, пока меню не создастся
+    var injectInterval = setInterval(function() {
+        if (menuAdded) {
+            clearInterval(injectInterval);
         } else {
-            if (window.Lampa && window.Lampa.Listener) {
-                window.Lampa.Listener.follow('app', function (e) {
-                    if (e.type == 'ready') initHuyamba();
-                });
-            }
+            tryInject();
         }
     }, 500);
 
