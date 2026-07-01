@@ -1,8 +1,16 @@
+/**
+ * {
+ * "name": "Хуямба",
+ * "version": "1.0.8",
+ * "description": "Huyamba Site",
+ * "plugin": "huyamba_plugin"
+ * }
+ */
+
 (function () {
     'use strict';
 
     function startHuyamba() {
-        // Проверяем, что ядро Lampa готово
         if (!window.Lampa || !window.Lampa.Menu) return;
 
         var menuitem = {
@@ -12,15 +20,14 @@
             name: 'Huyamba Name'
         };
 
-        // Добавляем пункт в левое меню
+        // Добавляем пункт в левое меню Lampa
         window.Lampa.Menu.add(menuitem);
 
-        // Создаем окно с сайтом БЕЗ использования знака "$"
+        // Создаем чистый компонент без использования jQuery ($)
         window.Lampa.Component.add('huyamba_component', function (object) {
             var box;
             
             this.create = function () {
-                // Создаем элементы через стандартные методы браузера
                 box = document.createElement('div');
                 box.style.width = '100%';
                 box.style.height = '100vh';
@@ -36,8 +43,8 @@
             };
 
             this.render = function () {
-                // Возвращаем элемент в формате, который ждет Lampa
-                return window.Lampa.Reguest ? box : window.$(box);
+                // Возвращаем чистый DOM-элемент напрямую
+                return box;
             };
 
             this.destroy = function () {
@@ -47,7 +54,7 @@
             };
         });
 
-        // Отслеживаем клик по нашему пункту
+        // Слушаем нажатие на пункт меню
         window.Lampa.Listener.follow('menu', function (e) {
             if (e.type === 'click' && e.item.id === 'huyamba_site') {
                 window.Lampa.Activity.push({
@@ -59,11 +66,15 @@
         });
     }
 
-    // Запускаем проверку через безопасный таймер
-    var interval = setInterval(function () {
-        if (window.Lampa && window.Lampa.Menu) {
-            clearInterval(interval);
-            startHuyamba();
-        }
-    }, 200);
+    // Безопасный запуск после загрузки интерфейса
+    if (window.Lampa && window.Lampa.Menu) {
+        startHuyamba();
+    } else {
+        var interval = setInterval(function () {
+            if (window.Lampa && window.Lampa.Menu) {
+                clearInterval(interval);
+                startHuyamba();
+            }
+        }, 300);
+    }
 })();
